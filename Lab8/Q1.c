@@ -10,66 +10,69 @@ struct Node {
 struct Node* createNode(int data) {
     struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
     newNode->data = data;
-    newNode->prev = NULL;
-    newNode->next = NULL;
+    newNode->prev = newNode->next = NULL;
     return newNode;
 }
 
-void insert_at_rear(struct Node** head, int data) {
+void insertAtRear(struct Node** head, int data) {
     struct Node* newNode = createNode(data);
     if (*head == NULL) {
         *head = newNode;
     } else {
-        struct Node* temp = *head;
-        while (temp->next != NULL)
-            temp = temp->next;
-        temp->next = newNode;
-        newNode->prev = temp;
+        struct Node* tail = *head;
+        while (tail->next != NULL) {
+            tail = tail->next;
+        }
+        tail->next = newNode;
+        newNode->prev = tail;
     }
+    printf("Inserted %d at the rear.\n", data);
 }
 
-void delete_from_rear(struct Node** head) {
+void deleteFromRear(struct Node** head) {
     if (*head == NULL) {
         printf("List is empty.\n");
         return;
     }
-    struct Node* temp = *head;
-    if (temp->next == NULL) {
-        free(temp);
+    struct Node* tail = *head;
+    if (tail->next == NULL) {
+        free(*head);
         *head = NULL;
     } else {
-        while (temp->next != NULL)
-            temp = temp->next;
-        temp->prev->next = NULL;
-        free(temp);
+        while (tail->next != NULL) {
+            tail = tail->next;
+        }
+        tail->prev->next = NULL;
+        free(tail);
     }
+    printf("Deleted element from rear.\n");
 }
 
-void insert_at_position(struct Node** head, int data, int pos) {
+void insertAtPosition(struct Node** head, int data, int pos) {
     struct Node* newNode = createNode(data);
-    if (pos == 1) { 
-        newNode->next = *head;
-        if (*head != NULL)
-            (*head)->prev = newNode;
+    if (*head == NULL && pos == 1) {
         *head = newNode;
-        return;
+    } else {
+        struct Node* temp = *head;
+        for (int i = 1; temp != NULL && i < pos - 1; i++) {
+            temp = temp->next;
+        }
+        if (temp == NULL && pos != 1) {
+            printf("Invalid position!\n");
+            free(newNode);
+            return;
+        }
+        newNode->next = temp->next;
+        if (temp->next != NULL) {
+            temp->next->prev = newNode;
+        }
+        temp->next = newNode;
+        newNode->prev = temp;
     }
-    struct Node* temp = *head;
-    for (int i = 1; i < pos - 1 && temp != NULL; i++)
-        temp = temp->next;
-    if (temp == NULL) {
-        printf("Position out of bounds.\n");
-        free(newNode);
-        return;
-    }
-    newNode->next = temp->next;
-    if (temp->next != NULL)
-        temp->next->prev = newNode;
-    temp->next = newNode;
-    newNode->prev = temp;
+    printf("Inserted %d at position %d.\n", data, pos);
 }
 
-void delete_at_position(struct Node** head, int pos) {
+void deleteFromPosition(struct Node** head, int pos) {
     if (*head == NULL) {
         printf("List is empty.\n");
         return;
@@ -77,61 +80,74 @@ void delete_at_position(struct Node** head, int pos) {
     struct Node* temp = *head;
     if (pos == 1) {
         *head = temp->next;
-        if (*head != NULL)
+        if (*head != NULL) {
             (*head)->prev = NULL;
+        }
         free(temp);
-        return;
+    } else {
+        for (int i = 1; temp != NULL && i < pos; i++) {
+            temp = temp->next;
+        }
+        if (temp == NULL) {
+            printf("Invalid position!\n");
+            return;
+        }
+        if (temp->prev != NULL) {
+            temp->prev->next = temp->next;
+        }
+        if (temp->next != NULL) {
+            temp->next->prev = temp->prev;
+        }
+        free(temp);
     }
-    for (int i = 1; i < pos && temp != NULL; i++)
-        temp = temp->next;
-    if (temp == NULL) {
-        printf("Position out of bounds.\n");
-        return;
-    }
-    if (temp->next != NULL)
-        temp->next->prev = temp->prev;
-    if (temp->prev != NULL)
-        temp->prev->next = temp->next;
-    free(temp);
+    printf("Deleted element from position %d.\n", pos);
 }
 
-void insert_after(struct Node** head, int after, int data) {
+void insertAfter(struct Node** head, int target, int data) {
     struct Node* temp = *head;
-    while (temp != NULL && temp->data != after)
+    while (temp != NULL && temp->data != target) {
         temp = temp->next;
+    }
     if (temp == NULL) {
-        printf("Element %d not found.\n", after);
+        printf("Element %d not found!\n", target);
         return;
     }
     struct Node* newNode = createNode(data);
     newNode->next = temp->next;
-    if (temp->next != NULL)
+    if (temp->next != NULL) {
         temp->next->prev = newNode;
+    }
     temp->next = newNode;
     newNode->prev = temp;
+    printf("Inserted %d after %d.\n", data, target);
 }
 
-void insert_before(struct Node** head, int before, int data) {
+void insertBefore(struct Node** head, int target, int data) {
     struct Node* temp = *head;
-    if (temp != NULL && temp->data == before) {
-        insert_at_position(head, data, 1);
+    if (temp != NULL && temp->data == target) {
+        insertAtPosition(head, data, 1);
         return;
     }
-    while (temp != NULL && temp->data != before)
+    while (temp != NULL && temp->data != target) {
         temp = temp->next;
+    }
     if (temp == NULL) {
-        printf("Element %d not found.\n", before);
+        printf("Element %d not found!\n", target);
         return;
     }
     struct Node* newNode = createNode(data);
-    newNode->next = temp;
     newNode->prev = temp->prev;
-    if (temp->prev != NULL)
-        temp->prev->next = newNode;
+    newNode->next = temp;
+    temp->prev->next = newNode;
     temp->prev = newNode;
+    printf("Inserted %d before %d.\n", data, target);
 }
 
 void traverse(struct Node* head) {
+    if (head == NULL) {
+        printf("List is empty.\n");
+        return;
+    }
     struct Node* temp = head;
     while (temp != NULL) {
         printf("%d ", temp->data);
@@ -140,27 +156,32 @@ void traverse(struct Node* head) {
     printf("\n");
 }
 
-void reverse_list(struct Node** head) {
-    struct Node* temp = NULL;
-    struct Node* current = *head;
+void reverseList(struct Node** head) {
+    if (*head == NULL) {
+        printf("List is empty.\n");
+        return;
+    }
+    struct Node *temp = NULL, *current = *head;
     while (current != NULL) {
         temp = current->prev;
         current->prev = current->next;
         current->next = temp;
         current = current->prev;
     }
-    if (temp != NULL)
+    if (temp != NULL) {
         *head = temp->prev;
+    }
+    printf("Reversed the list.\n");
 }
 
 int main() {
     struct Node* head = NULL;
-    int choice, data, pos, element;
+    int choice, data, pos, target;
+
+    printf("\n1. Insert at rear\n2. Delete from rear\n3. Insert at position\n4. Delete from position\n");
+    printf("5. Insert after element\n6. Insert before element\n7. Traverse\n8. Reverse list\n9. Exit\n");
 
     while (1) {
-        printf("\n1. Insert at rear\n2. Delete from rear\n3. Insert at position\n4. Delete from position\n");
-        printf("5. Insert after element\n6. Insert before element\n7. Traverse list\n8. Reverse list\n9. Exit\n");
-        while(1){
         printf("Enter your choice: ");
         scanf("%d", &choice);
 
@@ -168,36 +189,36 @@ int main() {
             case 1:
                 printf("Enter data to insert at rear: ");
                 scanf("%d", &data);
-                insert_at_rear(&head, data);
+                insertAtRear(&head, data);
                 break;
             case 2:
-                delete_from_rear(&head);
+                deleteFromRear(&head);
                 break;
             case 3:
-                printf("Enter position and data to insert: ");
-                scanf("%d%d", &pos, &data);
-                insert_at_position(&head, data, pos);
+                printf("Enter data and position to insert: ");
+                scanf("%d%d", &data, &pos);
+                insertAtPosition(&head, data, pos);
                 break;
             case 4:
                 printf("Enter position to delete: ");
                 scanf("%d", &pos);
-                delete_at_position(&head, pos);
+                deleteFromPosition(&head, pos);
                 break;
             case 5:
                 printf("Enter element after which to insert and data: ");
-                scanf("%d%d", &element, &data);
-                insert_after(&head, element, data);
+                scanf("%d%d", &target, &data);
+                insertAfter(&head, target, data);
                 break;
             case 6:
                 printf("Enter element before which to insert and data: ");
-                scanf("%d%d", &element, &data);
-                insert_before(&head, element, data);
+                scanf("%d%d", &target, &data);
+                insertBefore(&head, target, data);
                 break;
             case 7:
                 traverse(head);
                 break;
             case 8:
-                reverse_list(&head);
+                reverseList(&head);
                 break;
             case 9:
                 exit(0);
@@ -205,7 +226,7 @@ int main() {
                 printf("Invalid choice!\n");
         }
     }
-    }
 
     return 0;
 }
+
